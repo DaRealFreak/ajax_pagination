@@ -136,7 +136,7 @@ class XHRPagination {
      * @param element: QuerySelectorElement
      */
     static addAllPaginationEventListeners(element: QuerySelectorElement) {
-        [].slice.call(element.querySelectorAll('nav > ul.pagination a.page-link[data-ajaxuri]')).forEach(function (el: Element) {
+        [].slice.call(element.querySelectorAll('nav > ul a[data-ajaxuri]')).forEach(function (el: Element) {
             el.addEventListener('click', function (event: Event) {
                 XHRPagination.loadNextPage(this, this.dataset.ajaxuri);
                 event.preventDefault();
