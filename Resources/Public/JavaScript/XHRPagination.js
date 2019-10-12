@@ -46,7 +46,7 @@ var XHRPagination = /** @class */ (function () {
             parentNode.removeChild(replacementNode);
             parentNode.appendChild(contentElement);
             // refresh our pagination event listener for the newly loaded content elements
-            XHRPagination.addAllPaginationEventListeners(parentNode, saveState);
+            XHRPagination.addAllPaginationEventListeners(parentNode);
             // scroll to our new list start
             if ('scrollBehavior' in document.documentElement.style) {
                 // smooth scrolling for all browsers supporting the scroll behaviour (all except for IE11/Edge rn)
@@ -108,14 +108,13 @@ var XHRPagination = /** @class */ (function () {
      *
      * @param element
      * @param uri
-     * @param saveState
      */
-    XHRPagination.loadNextPage = function (element, uri, saveState) {
+    XHRPagination.loadNextPage = function (element, uri) {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', uri);
         xhr.onload = function () {
             if (xhr.status === 200) {
-                XHRPagination.paginate(element, xhr.responseText, saveState);
+                XHRPagination.paginate(element, xhr.responseText, true);
             }
         };
         xhr.send();
@@ -124,12 +123,11 @@ var XHRPagination = /** @class */ (function () {
      * add the pagination click event listener to all elements of queryable element
      *
      * @param element: QuerySelectorElement
-     * @param saveState
      */
-    XHRPagination.addAllPaginationEventListeners = function (element, saveState) {
+    XHRPagination.addAllPaginationEventListeners = function (element) {
         [].slice.call(element.querySelectorAll('nav > ul.pagination a.page-link[data-ajaxuri]')).forEach(function (el) {
             el.addEventListener('click', function (event) {
-                XHRPagination.loadNextPage(this, this.dataset.ajaxuri, saveState);
+                XHRPagination.loadNextPage(this, this.dataset.ajaxuri);
                 event.preventDefault();
             });
         });
@@ -141,7 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var stateObj = { url: location.href, innerHTML: document.body.innerHTML };
     window.history.replaceState(stateObj, '', stateObj.url);
     // add the pagination event listener initially to all found links in the document
-    XHRPagination.addAllPaginationEventListeners(document, true);
+    XHRPagination.addAllPaginationEventListeners(document);
 });
 window.onpopstate = function (event) {
     if (event.state !== null) {
