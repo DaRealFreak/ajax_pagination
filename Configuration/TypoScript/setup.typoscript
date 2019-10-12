@@ -1,0 +1,13 @@
+# Frontend Template Configuration
+plugin.tx_ajaxpagination {
+    view {
+        widget.SKeuper\AjaxPagination\ViewHelpers\Widget\AjaxPaginateViewHelper.templateRootPath = EXT:ajax_pagination/Resources/Private/Templates/
+    }
+}
+
+# JavaScript file includes
+page {
+    includeJS {
+        ajaxPagination = EXT:ajax_pagination/Resources/Public/JavaScript/XHRPagination.js
+    }
+}

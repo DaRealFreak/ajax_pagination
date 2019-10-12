@@ -1,0 +1,152 @@
+<!--suppress XmlUnusedNamespaceDeclaration -->
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+      xmlns:h="http://typo3.org/ns/Helhum/TyposcriptRendering/ViewHelpers"
+      xmlns:p="http://typo3.org/ns/SKeuper/AjaxPagination/ViewHelpers"
+      data-namespace-typo3-fluid="true">
+
+<div id="ajax-container-{p:record.resolve.objectUid()}" data-update-browser-history="{configuration.updateBrowserHistory}">
+    <f:if condition="{configuration.insertAbove}">
+        <f:render section="paginator" arguments="{pagination: pagination, configuration: configuration}"/>
+    </f:if>
+
+    <f:renderChildren arguments="{contentArguments}"/>
+
+    <f:if condition="{configuration.insertBelow}">
+        <f:render section="paginator" arguments="{pagination: pagination, configuration: configuration}"/>
+    </f:if>
+</div>
+
+<f:section name="paginator">
+    <nav aria-label="page navigation">
+        <ul class="pagination">
+            <f:if condition="{pagination.previousPage}">
+                <li class="page-item previous">
+                    <f:if condition="{pagination.previousPage} > 1">
+                        <f:then>
+                            <f:variable name="ajaxUri" value="{h:widget.uri(
+                                arguments: '{currentPage: pagination.previousPage}',
+                                contextRecord: 'tt_content:{p:record.resolve.objectUid()}',
+                                extensionName: '{p:record.resolve.extension()}',
+                                pluginName: '{p:record.resolve.plugin()}',
+                                addQueryStringMethod: configuration.addQueryStringMethod
+                            )}"/>
+                            <p:widget.link class="page-link" arguments="{currentPage: pagination.previousPage}"
+                                           data="{ajaxuri: ajaxUri}"
+                                           addQueryStringMethod="{configuration.addQueryStringMethod}">«
+                                <f:translate key="widget.pagination.previous"/>
+                            </p:widget.link>
+                        </f:then>
+                        <f:else>
+                            <f:variable name="ajaxUri" value="{h:widget.uri(
+                                contextRecord: 'tt_content:{p:record.resolve.objectUid()}',
+                                extensionName: '{p:record.resolve.extension()}',
+                                pluginName: '{p:record.resolve.plugin()}',
+                                addQueryStringMethod: configuration.addQueryStringMethod
+                            )}"/>
+                            <p:widget.link class="page-link"
+                                           data="{ajaxuri: ajaxUri}"
+                                           addQueryStringMethod="{configuration.addQueryStringMethod}">«
+                                <f:translate key="widget.pagination.previous"/>
+                            </p:widget.link>
+                        </f:else>
+                    </f:if>
+                </li>
+            </f:if>
+            <f:if condition="{pagination.displayRangeStart} > 1">
+                <li class="page-item first">
+                    <f:variable name="ajaxUri" value="{h:widget.uri(
+                        contextRecord: 'tt_content:{p:record.resolve.objectUid()}',
+                        extensionName: '{p:record.resolve.extension()}',
+                        pluginName: '{p:record.resolve.plugin()}',
+                        addQueryStringMethod: configuration.addQueryStringMethod
+                    )}"/>
+                    <p:widget.link class="page-link" data="{ajaxuri: ajaxUri}"
+                                   addQueryStringMethod="{configuration.addQueryStringMethod}">1
+                    </p:widget.link>
+                </li>
+            </f:if>
+            <f:if condition="{pagination.hasLessPages}">
+                <li><a class="page-link">...</a></li>
+            </f:if>
+            <f:for each="{pagination.pages}" as="page">
+                <f:if condition="{page.isCurrent}">
+                    <f:then>
+                        <li class="page-item active">
+                          <span class="page-link">
+                              {page.number}
+                          </span>
+                        </li>
+                    </f:then>
+                    <f:else>
+                        <li>
+                            <f:if condition="{page.number} > 1">
+                                <f:then>
+                                    <f:variable name="ajaxUri" value="{h:widget.uri(
+                                        arguments: '{currentPage: page.number}',
+                                        contextRecord: 'tt_content:{p:record.resolve.objectUid()}',
+                                        extensionName: '{p:record.resolve.extension()}',
+                                        pluginName: '{p:record.resolve.plugin()}',
+                                        addQueryStringMethod: configuration.addQueryStringMethod
+                                    )}"/>
+                                    <p:widget.link class="page-link" arguments="{currentPage: page.number}"
+                                                   data="{ajaxuri: ajaxUri}"
+                                                   addQueryStringMethod="{configuration.addQueryStringMethod}">
+                                        {page.number}
+                                    </p:widget.link>
+                                </f:then>
+                                <f:else>
+                                    <f:variable name="ajaxUri" value="{h:widget.uri(
+                                        contextRecord: 'tt_content:{p:record.resolve.objectUid()}',
+                                        extensionName: '{p:record.resolve.extension()}',
+                                        pluginName: '{p:record.resolve.plugin()}',
+                                        addQueryStringMethod: configuration.addQueryStringMethod
+                                    )}"/>
+                                    <p:widget.link class="page-link" data="{ajaxuri: ajaxUri}"
+                                                   addQueryStringMethod="{configuration.addQueryStringMethod}">
+                                        {page.number}
+                                    </p:widget.link>
+                                </f:else>
+                            </f:if>
+                        </li>
+                    </f:else>
+                </f:if>
+            </f:for>
+            <f:if condition="{pagination.hasMorePages}">
+                <li><a class="page-link">...</a></li>
+            </f:if>
+            <f:if condition="{pagination.displayRangeEnd} < {pagination.numberOfPages}">
+                <li class="page-item last">
+                    <f:variable name="ajaxUri" value="{h:widget.uri(
+                        arguments: '{currentPage: pagination.numberOfPages}',
+                        contextRecord: 'tt_content:{p:record.resolve.objectUid()}',
+                        extensionName: '{p:record.resolve.extension()}',
+                        pluginName: '{p:record.resolve.plugin()}',
+                        addQueryStringMethod: configuration.addQueryStringMethod
+                    )}"/>
+                    <p:widget.link class="page-link" arguments="{currentPage: pagination.numberOfPages}"
+                                   data="{ajaxuri: ajaxUri}"
+                                   addQueryStringMethod="{configuration.addQueryStringMethod}">
+                        {pagination.numberOfPages}
+                    </p:widget.link>
+                </li>
+            </f:if>
+            <f:if condition="{pagination.nextPage}">
+                <li class="page-item next">
+                    <f:variable name="ajaxUri" value="{h:widget.uri(
+                        arguments: '{currentPage: pagination.nextPage}',
+                        contextRecord: 'tt_content:{p:record.resolve.objectUid()}',
+                        extensionName: '{p:record.resolve.extension()}',
+                        pluginName: '{p:record.resolve.plugin()}',
+                        addQueryStringMethod: configuration.addQueryStringMethod
+                    )}"/>
+                    <p:widget.link class="page-link" arguments="{currentPage: pagination.nextPage}"
+                                   data="{ajaxuri: ajaxUri}"
+                                   addQueryStringMethod="{configuration.addQueryStringMethod}">
+                        <f:translate key="widget.pagination.next"/>
+                        »
+                    </p:widget.link>
+                </li>
+            </f:if>
+        </ul>
+    </nav>
+</f:section>
