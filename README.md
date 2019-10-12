@@ -21,6 +21,22 @@ The pagination adds the option to manipulate the browser history while paginatin
 You can simply add `updateBrowserHistory: '1'` to the passed configuration of the pagination.  
 This will result in the pagination pushing states in the browser history for restoring the previous site on going back.
 
+## Custom Pagination Template
+You can overwrite the default pagination template by simply adding following lines to your custom TypoScript:
+```typo3_typoscript
+config {
+    // you can also use tx_extension to only change the template for a specific extension
+    tx_extbase {
+        view {
+            widget.SKeuper\AjaxPagination\ViewHelpers\Widget\PaginateViewHelper.templateRootPaths {
+                0 = EXT:ajax_pagination/Resources/Private/Templates
+                1 = EXT:provider_tpl/Resources/Private/Templates/AjaxPagination
+            }
+        }
+    }
+}
+```
+
 ## Development
 Want to contribute? Great!  
 I'm always glad hearing about bugs or pull requests.
