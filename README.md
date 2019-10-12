@@ -14,7 +14,7 @@ TYPO3 Extension providing full functionality for AJAX paginations for passed obj
 or you can download the extension from the TYPO3 extension repository and install it with the extension manager module.
 2. Include the template `AJAX Pagination (ajax_pagination)` to the included static templates.
 3. Now you can change `<f:widget.paginate ... > ... </f:widget.paginate>` to `<p:widget.paginate ... > ... </p:widget.paginate>`
-and everything should work already.
+after including the ViewHelper namespace `xmlns:p="http://typo3.org/ns/SKeuper/AjaxPagination/ViewHelpers"` and everything should work already.
 
 ## Browser History Manipulation
 The pagination adds the option to manipulate the browser history while paginating.  
