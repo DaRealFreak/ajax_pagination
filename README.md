@@ -16,6 +16,11 @@ or you can download the extension from the TYPO3 extension repository and instal
 3. Now you can change `<f:widget.paginate ... > ... </f:widget.paginate>` to `<p:widget.paginate ... > ... </p:widget.paginate>`
 after including the ViewHelper namespace `xmlns:p="http://typo3.org/ns/SKeuper/AjaxPagination/ViewHelpers"` and everything should work already.
 
+## TYPO3 9 TypoScript Rendering
+Currently the Widget ViewHelpers in the relied on TYPO3 extension `helhum/typoscript-rendering` are not compatible with TYPO3 9.  
+In my case I'm using [this patch](patches/tx_typoscript_rendering-typo3_9_compatibility_widget_viewhelpers.diff) to make the ViewHelpers TYPO3 compatible.  
+There are 2 Pull Requests in the official extension repository too to fix the issue in case you want to wait for an official patch.
+
 ## Browser History Manipulation
 The pagination adds the option to manipulate the browser history while paginating.  
 You can simply add `updateBrowserHistory: '1'` to the passed configuration of the pagination.  
