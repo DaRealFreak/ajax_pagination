@@ -14,8 +14,11 @@ namespace SKeuper\AjaxPagination\ViewHelpers\Record\Resolve;
  ***/
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Fluid\Core\Rendering\RenderingContext;
 use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
 use TYPO3\CMS\Fluid\Core\Widget\WidgetRequest;
+use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
+use TYPO3Fluid\Fluid\Core\ViewHelper\Traits\CompileWithRenderStatic;
 
 /**
  * Class ExtensionViewHelper
@@ -23,15 +26,20 @@ use TYPO3\CMS\Fluid\Core\Widget\WidgetRequest;
  */
 class ExtensionViewHelper extends AbstractViewHelper
 {
+    use CompileWithRenderStatic;
 
     /**
      * ViewHelper to retrieve the uid of the currently rendering object
      *
+     * @param array $arguments
+     * @param \Closure $renderChildrenClosure
+     * @param RenderingContextInterface $renderingContext
      * @return string The uid of the currently rendering object or an 'error' string
      */
-    public function render()
+    public static function renderStatic(array $arguments, \Closure $renderChildrenClosure, RenderingContextInterface $renderingContext)
     {
-        $request = $this->controllerContext->getRequest();
+        /** @var RenderingContext $renderingContext $request */
+        $request = $renderingContext->getControllerContext()->getRequest();
         if ($request instanceof WidgetRequest) {
             $extensionName = $request->getWidgetContext()->getParentExtensionName();
         } else {

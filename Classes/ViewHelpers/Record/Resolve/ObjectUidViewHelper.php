@@ -13,8 +13,12 @@ namespace SKeuper\AjaxPagination\ViewHelpers\Record\Resolve;
  *
  ***/
 
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
+use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
+use TYPO3Fluid\Fluid\Core\ViewHelper\Traits\CompileWithRenderStatic;
 
 /**
  * Class ObjectUidViewHelper
@@ -22,16 +26,22 @@ use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
  */
 class ObjectUidViewHelper extends AbstractViewHelper
 {
+    use CompileWithRenderStatic;
 
     /**
      * ViewHelper to retrieve the uid of the currently rendering object
      *
+     * @param array $arguments
+     * @param \Closure $renderChildrenClosure
+     * @param RenderingContextInterface $renderingContext
      * @return string The uid of the currently rendering object or an 'error' string
      */
-    public function render()
+    public static function renderStatic(array $arguments, \Closure $renderChildrenClosure, RenderingContextInterface $renderingContext)
     {
+        /** @var ObjectManager $objectManager */
+        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
         /** @var ConfigurationManagerInterface $conf */
-        $conf = $this->objectManager->get(ConfigurationManagerInterface::class);
+        $conf = $objectManager->get(ConfigurationManagerInterface::class);
         $cObj = $conf->getContentObject();
 
         if ($cObjUid = $cObj->data['uid']) {
