@@ -13,6 +13,8 @@ namespace SKeuper\AjaxPagination\ViewHelpers\Widget;
  *
  ***/
 
+use TYPO3\CMS\Extbase\Mvc\Controller\ControllerContext;
+
 /**
  * Class LinkViewHelper
  * @package SKeuper\AjaxPagination\ViewHelpers\Widget
@@ -28,9 +30,13 @@ class LinkViewHelper extends \TYPO3\CMS\Fluid\ViewHelpers\Widget\LinkViewHelper
      */
     protected function getWidgetUri()
     {
+        // compatibility to LinkViewHelper of TYPO3 8.x versions
+        /** @var ControllerContext $controllerContext */
+        $controllerContext = $this->controllerContext ?? $this->renderingContext->getControllerContext();
+
         /** @noinspection DuplicatedCode */
-        $uriBuilder = $this->controllerContext->getUriBuilder();
-        $argumentPrefix = $this->controllerContext->getRequest()->getArgumentPrefix();
+        $uriBuilder = $controllerContext->getUriBuilder();
+        $argumentPrefix = $controllerContext->getRequest()->getArgumentPrefix();
         $arguments = $this->hasArgument('arguments') ? $this->arguments['arguments'] : [];
         if ($this->hasArgument('action')) {
             $arguments['action'] = $this->arguments['action'];
