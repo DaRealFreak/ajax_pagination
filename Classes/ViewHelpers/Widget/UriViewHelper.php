@@ -30,8 +30,6 @@ class UriViewHelper extends AbstractViewHelper
      */
     public function initializeArguments()
     {
-        echo "wat";
-        exit;
         $this->registerArgument('useCacheHash', 'bool', 'True whether the cache hash should be appended to the URL', false, false);
         $this->registerArgument('addQueryStringMethod', 'string', 'Method to be used for query string');
         $this->registerArgument('action', 'string', 'Target action');
