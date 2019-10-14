@@ -10,7 +10,7 @@ var XHRPagination = /** @class */ (function () {
      *
      * @param element: HTMLElement
      * @param content: string
-     * @param saveState
+     * @param saveState: boolean
      */
     XHRPagination.paginate = function (element, content, saveState) {
         if (saveState === void 0) { saveState = false; }
@@ -67,8 +67,8 @@ var XHRPagination = /** @class */ (function () {
     /**
      * Internet Explorer 11 and Edge compliant alternative to the closest selector
      *
-     * @param el
-     * @param selector
+     * @param el: HTMLElement|null
+     * @param selector: string
      */
     XHRPagination.closest = function (el, selector) {
         var matchesFn;
@@ -106,8 +106,8 @@ var XHRPagination = /** @class */ (function () {
     /**
      * load the response from the passed URI before paginating
      *
-     * @param element
-     * @param uri
+     * @param element: HTMLElement
+     * @param uri: string
      */
     XHRPagination.loadNextPage = function (element, uri) {
         var xhr = new XMLHttpRequest();
@@ -132,23 +132,34 @@ var XHRPagination = /** @class */ (function () {
             });
         });
     };
+    /**
+     * adds the onpopstate functionality
+     * and replaces the current browser history state for history.back() functionality to main page
+     */
+    XHRPagination.prepareBrowserHistoryUpdate = function () {
+        // add the current page to the history for window.back before the first XHR request
+        var stateObj = { url: location.href, innerHTML: document.body.innerHTML };
+        window.history.replaceState(stateObj, '', stateObj.url);
+        // add a onpopstate function to parse our manipulated history states
+        window.onpopstate = function (event) {
+            if (event.state !== null) {
+                if (event.state.innerHTML !== undefined) {
+                    document.body.innerHTML = event.state.innerHTML;
+                    XHRPagination.addAllPaginationEventListeners(document);
+                }
+                else {
+                    var containerElement = document.querySelector('div[id="' + event.state.containerId + '"] a');
+                    XHRPagination.paginate(containerElement, event.state.content, false);
+                }
+            }
+        };
+    };
     return XHRPagination;
 }());
 document.addEventListener("DOMContentLoaded", function () {
-    // add the current page to the history for window.back before the first XHR request
-    var stateObj = { url: location.href, innerHTML: document.body.innerHTML };
-    window.history.replaceState(stateObj, '', stateObj.url);
+    if (document.querySelector('[id^="ajax-container-"][data-update-browser-history="1"]') !== null) {
+        XHRPagination.prepareBrowserHistoryUpdate();
+    }
     // add the pagination event listener initially to all found links in the document
     XHRPagination.addAllPaginationEventListeners(document);
 });
-window.onpopstate = function (event) {
-    if (event.state !== null) {
-        if (event.state.innerHTML !== undefined) {
-            document.body.innerHTML = event.state.innerHTML;
-        }
-        else {
-            var containerElement = document.querySelector('div[id="' + event.state.containerId + '"] a');
-            XHRPagination.paginate(containerElement, event.state.content, false);
-        }
-    }
-};

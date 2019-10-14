@@ -16,9 +16,9 @@ class XHRPagination {
      *
      * @param element: HTMLElement
      * @param content: string
-     * @param saveState
+     * @param saveState: boolean
      */
-    static paginate(element: HTMLElement, content: string, saveState = false) {
+    static paginate(element: HTMLElement, content: string, saveState: boolean = false) {
         let replacementNode;
         if (typeof element.closest === 'function') {
             // all modern browsers
@@ -73,8 +73,8 @@ class XHRPagination {
     /**
      * Internet Explorer 11 and Edge compliant alternative to the closest selector
      *
-     * @param el
-     * @param selector
+     * @param el: HTMLElement|null
+     * @param selector: string
      */
     static closest(el: HTMLElement | null, selector: string) {
         let matchesFn: any;
@@ -116,8 +116,8 @@ class XHRPagination {
     /**
      * load the response from the passed URI before paginating
      *
-     * @param element
-     * @param uri
+     * @param element: HTMLElement
+     * @param uri: string
      */
     static loadNextPage(element: HTMLElement, uri: string) {
         let xhr = new XMLHttpRequest();
@@ -143,24 +143,36 @@ class XHRPagination {
             });
         });
     }
+
+    /**
+     * adds the onpopstate functionality
+     * and replaces the current browser history state for history.back() functionality to main page
+     */
+    static prepareBrowserHistoryUpdate() {
+        // add the current page to the history for window.back before the first XHR request
+        let stateObj = {url: location.href, innerHTML: document.body.innerHTML};
+        window.history.replaceState(stateObj, '', stateObj.url);
+
+        // add a onpopstate function to parse our manipulated history states
+        window.onpopstate = function (event: any) {
+            if (event.state !== null) {
+                if (event.state.innerHTML !== undefined) {
+                    document.body.innerHTML = event.state.innerHTML;
+                    XHRPagination.addAllPaginationEventListeners(document);
+                } else {
+                    let containerElement = (<HTMLInputElement>document.querySelector('div[id="' + event.state.containerId + '"] a'));
+                    XHRPagination.paginate(containerElement, event.state.content, false);
+                }
+            }
+        };
+    }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    // add the current page to the history for window.back before the first XHR request
-    let stateObj = {url: location.href, innerHTML: document.body.innerHTML};
-    window.history.replaceState(stateObj, '', stateObj.url);
+    if (document.querySelector('[id^="ajax-container-"][data-update-browser-history="1"]') !== null) {
+        XHRPagination.prepareBrowserHistoryUpdate()
+    }
 
     // add the pagination event listener initially to all found links in the document
     XHRPagination.addAllPaginationEventListeners(document);
 });
-
-window.onpopstate = function (event: any) {
-    if (event.state !== null) {
-        if (event.state.innerHTML !== undefined) {
-            document.body.innerHTML = event.state.innerHTML;
-        } else {
-            let containerElement = (<HTMLInputElement>document.querySelector('div[id="' + event.state.containerId + '"] a'));
-            XHRPagination.paginate(containerElement, event.state.content, false);
-        }
-    }
-};
