@@ -13,7 +13,6 @@ namespace SKeuper\AjaxPagination\ViewHelpers\Record\Resolve;
  *
  ***/
 
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\Core\Rendering\RenderingContext;
 use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
 use TYPO3\CMS\Fluid\Core\Widget\WidgetRequest;
