@@ -7,9 +7,30 @@ interface QuerySelectorElement {
 }
 
 /**
+ * interface to use in other typescript modules if required
+ */
+interface XhrPagination {
+    addPaginateCallback(cb: () => any): void;
+
+    prepareBrowserHistoryUpdate(): void;
+
+    addAllPaginationEventListeners(element: QuerySelectorElement): void;
+}
+
+/**
  * basic functionality for asynchronous loaded pagination
  */
-class XHRPagination {
+class XHRPagination implements XhrPagination {
+    // callbacks being called after every pagination process
+    callbacks: { (): any; } [];
+
+    /**
+     * initialize all required variables/settings for the XHR pagination
+     */
+    constructor() {
+        this.callbacks = [];
+    }
+
     /**
      * pagination functionality. loads the returned content of the next page and replaces the current
      * pagination content with the newly loaded content
@@ -18,14 +39,14 @@ class XHRPagination {
      * @param content: string
      * @param saveState: boolean
      */
-    static paginate(element: HTMLElement, content: string, saveState: boolean = false) {
+    private paginate(element: HTMLElement, content: string, saveState: boolean = false) {
         let replacementNode;
         if (typeof element.closest === 'function') {
             // all modern browsers
             replacementNode = element.closest('div[id^="ajax-container-"]');
         } else {
             // IE11 and Edge...
-            replacementNode = XHRPagination.closest(element, 'div[id^="ajax-container-"]');
+            replacementNode = this.closest(element, 'div[id^="ajax-container-"]');
         }
         if (replacementNode === null) {
             console.warn("couldn't find closest container for clicked pagination object");
@@ -53,7 +74,7 @@ class XHRPagination {
             parentNode.removeChild(replacementNode);
             parentNode.appendChild(contentElement);
             // refresh our pagination event listener for the newly loaded content elements
-            XHRPagination.addAllPaginationEventListeners(parentNode);
+            this.addAllPaginationEventListeners(parentNode);
             // scroll to our new list start
             if ('scrollBehavior' in document.documentElement.style) {
                 // smooth scrolling for all browsers supporting the scroll behaviour (all except for IE11/Edge rn)
@@ -65,6 +86,11 @@ class XHRPagination {
                 // Internet Explorer 11 and Edge don't support ScrollToOptions yet, hard jump for them
                 window.scrollTo(0, (<HTMLInputElement>parentNode.querySelector('div[id="' + replacementNode.id + '"]')).offsetTop - 150);
             }
+
+            // call each callback after finishing our pagination process
+            this.callbacks.forEach(function (cb) {
+                cb();
+            });
         } else {
             console.error("couldn't retrieve ajax container from XHR response text");
         }
@@ -76,7 +102,7 @@ class XHRPagination {
      * @param el: HTMLElement|null
      * @param selector: string
      */
-    static closest(el: HTMLElement | null, selector: string) {
+    private closest(el: HTMLElement | null, selector: string) {
         let matchesFn: any;
 
         // find vendor prefix
@@ -107,7 +133,7 @@ class XHRPagination {
      * @param htmlString: string
      * @param replacementNode: Element
      */
-    static htmlToElements(htmlString: string, replacementNode: Element): HTMLElement | null {
+    private static htmlToElements(htmlString: string, replacementNode: Element): HTMLElement | null {
         let template = document.createElement('div');
         template.innerHTML = htmlString;
         return template.querySelector('div[id="' + replacementNode.id + '"]');
@@ -119,12 +145,13 @@ class XHRPagination {
      * @param element: HTMLElement
      * @param uri: string
      */
-    static loadNextPage(element: HTMLElement, uri: string) {
+    private loadNextPage(element: HTMLElement, uri: string) {
         let xhr = new XMLHttpRequest();
+
         xhr.open('GET', uri);
-        xhr.onload = function () {
+        xhr.onload = () => {
             if (xhr.status === 200) {
-                XHRPagination.paginate(element, xhr.responseText, true);
+                this.paginate(element, xhr.responseText, true);
             }
         };
         xhr.send();
@@ -135,10 +162,12 @@ class XHRPagination {
      *
      * @param element: QuerySelectorElement
      */
-    static addAllPaginationEventListeners(element: QuerySelectorElement) {
+    public addAllPaginationEventListeners(element: QuerySelectorElement) {
+        let _this = this;
+
         [].slice.call(element.querySelectorAll('nav > ul a[data-ajaxuri]')).forEach(function (el: Element) {
             el.addEventListener('click', function (event: Event) {
-                XHRPagination.loadNextPage(this, this.dataset.ajaxuri);
+                _this.loadNextPage(this, this.dataset.ajaxuri);
                 event.preventDefault();
             });
         });
@@ -148,31 +177,42 @@ class XHRPagination {
      * adds the onpopstate functionality
      * and replaces the current browser history state for history.back() functionality to main page
      */
-    static prepareBrowserHistoryUpdate() {
+    public prepareBrowserHistoryUpdate() {
         // add the current page to the history for window.back before the first XHR request
         let stateObj = {url: location.href, innerHTML: document.body.innerHTML};
         window.history.replaceState(stateObj, '', stateObj.url);
 
         // add a onpopstate function to parse our manipulated history states
-        window.onpopstate = function (event: any) {
+        window.onpopstate = (event: any) => {
             if (event.state !== null) {
                 if (event.state.innerHTML !== undefined) {
                     document.body.innerHTML = event.state.innerHTML;
-                    XHRPagination.addAllPaginationEventListeners(document);
+                    this.addAllPaginationEventListeners(document);
                 } else {
                     let containerElement = (<HTMLInputElement>document.querySelector('div[id="' + event.state.containerId + '"] a'));
-                    XHRPagination.paginate(containerElement, event.state.content, false);
+                    this.paginate(containerElement, event.state.content, false);
                 }
             }
         };
     }
+
+    /**
+     * in case your application relies on additional javascript you can register a callback
+     * which registers on every pagination process
+     */
+    public addPaginateCallback(p: () => any): void {
+        this.callbacks.push(p);
+    }
 }
+
+// export default XHR pagination object
+let xhrPagination = new XHRPagination();
 
 document.addEventListener("DOMContentLoaded", function () {
     if (document.querySelector('[id^="ajax-container-"][data-update-browser-history="1"]') !== null) {
-        XHRPagination.prepareBrowserHistoryUpdate()
+        xhrPagination.prepareBrowserHistoryUpdate()
     }
 
     // add the pagination event listener initially to all found links in the document
-    XHRPagination.addAllPaginationEventListeners(document);
+    xhrPagination.addAllPaginationEventListeners(document);
 });
