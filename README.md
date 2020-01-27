@@ -8,6 +8,7 @@ TYPO3 Extension providing full functionality for AJAX paginations for passed obj
 - lightweight, it doesn't require any additional libraries to work
 - option to manipulate the browser history with an additional option
 - if JavaScript is disabled the pagination will still work normally
+- callbacks after successfully or failing the pagination process
 
 ## Usage
 1. You can install the extension either using composer using `composer require skeuper/ajax-pagination`  
@@ -45,7 +46,7 @@ config {
 ## Callbacks after a successful pagination
 In case you have to execute JavaScript after a pagination (f.e. for image gallery libraries) you can register a callback using the default exposed xhrPagination object.
 ```javascript
-xhrPagination.addPaginateCallback(function () {
+xhrPagination.callbacks.push(function () {
     console.log("successfully paginated woohoo")
 });
 ```
@@ -53,9 +54,26 @@ xhrPagination.addPaginateCallback(function () {
 The interface for the xhrPagination object which you could also import using the TypeScript modules:
 ```typescript
 interface XhrPagination {
-    addPaginateCallback(cb: () => any): void;
-    prepareBrowserHistoryUpdate(): void;
+    // callbacks in case the pagination fails, returns text containing the error message/status
+    failCallbacks: { (errorText: string): any; } [];
+    // callbacks after successful pagination but before scrolling to the top of the element
+    // useful f.e. if galleries aren't initialized yet and you want to initialize them before scrolling to them
+    callbacksPreScroll: { (): any; } [];
+    // callbacks being called after everything finished
+    callbacks: { (): any; } [];
+
+    /**
+     * add the pagination click event listener to all elements of queryable element
+     *
+     * @param element: QuerySelectorElement
+     */
     addAllPaginationEventListeners(element: QuerySelectorElement): void;
+
+    /**
+     * adds the onpopstate functionality
+     * and replaces the current browser history state for history.back() functionality to main page
+     */
+    prepareBrowserHistoryUpdate(): void;
 }
 
 // the element simply requires the querySelectorAll function

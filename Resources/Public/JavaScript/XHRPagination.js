@@ -6,6 +6,8 @@ var XHRPagination = /** @class */ (function () {
      * initialize all required variables/settings for the XHR pagination
      */
     function XHRPagination() {
+        this.failCallbacks = [];
+        this.callbacksPreScroll = [];
         this.callbacks = [];
     }
     /**
@@ -44,13 +46,16 @@ var XHRPagination = /** @class */ (function () {
             }
             var parentNode = replacementNode.parentNode;
             if (parentNode === null) {
-                console.error("parent node is null");
                 return;
             }
             parentNode.removeChild(replacementNode);
             parentNode.appendChild(contentElement);
             // refresh our pagination event listener for the newly loaded content elements
             this.addAllPaginationEventListeners(parentNode);
+            // call each callback before scrolling to the top of the new element
+            this.callbacksPreScroll.forEach(function (cb) {
+                cb();
+            });
             // scroll to our new list start
             if ('scrollBehavior' in document.documentElement.style) {
                 // smooth scrolling for all browsers supporting the scroll behaviour (all except for IE11/Edge rn)
@@ -69,7 +74,9 @@ var XHRPagination = /** @class */ (function () {
             });
         }
         else {
-            console.error("couldn't retrieve ajax container from XHR response text");
+            this.failCallbacks.forEach(function (cb) {
+                cb("couldn't retrieve ajax container from XHR response text");
+            });
         }
     };
     /**
@@ -125,14 +132,14 @@ var XHRPagination = /** @class */ (function () {
             if (xhr.status === 200) {
                 _this_1.paginate(element, xhr.responseText, true);
             }
+            else {
+                _this_1.failCallbacks.forEach(function (cb) {
+                    cb(xhr.statusText);
+                });
+            }
         };
         xhr.send();
     };
-    /**
-     * add the pagination click event listener to all elements of queryable element
-     *
-     * @param element: QuerySelectorElement
-     */
     XHRPagination.prototype.addAllPaginationEventListeners = function (element) {
         var _this = this;
         [].slice.call(element.querySelectorAll('nav > ul a[data-ajaxuri]')).forEach(function (el) {
@@ -142,10 +149,6 @@ var XHRPagination = /** @class */ (function () {
             });
         });
     };
-    /**
-     * adds the onpopstate functionality
-     * and replaces the current browser history state for history.back() functionality to main page
-     */
     XHRPagination.prototype.prepareBrowserHistoryUpdate = function () {
         var _this_1 = this;
         // add the current page to the history for window.back before the first XHR request
@@ -164,13 +167,6 @@ var XHRPagination = /** @class */ (function () {
                 }
             }
         };
-    };
-    /**
-     * in case your application relies on additional javascript you can register a callback
-     * which registers on every pagination process
-     */
-    XHRPagination.prototype.addPaginateCallback = function (p) {
-        this.callbacks.push(p);
     };
     return XHRPagination;
 }());

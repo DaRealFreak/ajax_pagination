@@ -10,24 +10,42 @@ interface QuerySelectorElement {
  * interface to use in other typescript modules if required
  */
 interface XhrPagination {
-    addPaginateCallback(cb: () => any): void;
+    // callbacks in case the pagination fails, returns text containing the error message/status
+    failCallbacks: { (errorText: string): any; } [];
+    // callbacks after successful pagination but before scrolling to the top of the element
+    // useful f.e. if galleries aren't initialized yet and you want to initialize them before scrolling to them
+    callbacksPreScroll: { (): any; } [];
+    // callbacks being called after everything finished
+    callbacks: { (): any; } [];
 
-    prepareBrowserHistoryUpdate(): void;
-
+    /**
+     * add the pagination click event listener to all elements of queryable element
+     *
+     * @param element: QuerySelectorElement
+     */
     addAllPaginationEventListeners(element: QuerySelectorElement): void;
+
+    /**
+     * adds the onpopstate functionality
+     * and replaces the current browser history state for history.back() functionality to main page
+     */
+    prepareBrowserHistoryUpdate(): void;
 }
 
 /**
  * basic functionality for asynchronous loaded pagination
  */
 class XHRPagination implements XhrPagination {
-    // callbacks being called after every pagination process
+    failCallbacks: { (errorText: string): any; } [];
+    callbacksPreScroll: { (): any; } [];
     callbacks: { (): any; } [];
 
     /**
      * initialize all required variables/settings for the XHR pagination
      */
     constructor() {
+        this.failCallbacks = [];
+        this.callbacksPreScroll = [];
         this.callbacks = [];
     }
 
@@ -67,7 +85,6 @@ class XHRPagination implements XhrPagination {
 
             let parentNode = replacementNode.parentNode;
             if (parentNode === null) {
-                console.error("parent node is null");
                 return;
             }
 
@@ -75,6 +92,12 @@ class XHRPagination implements XhrPagination {
             parentNode.appendChild(contentElement);
             // refresh our pagination event listener for the newly loaded content elements
             this.addAllPaginationEventListeners(parentNode);
+
+            // call each callback before scrolling to the top of the new element
+            this.callbacksPreScroll.forEach(function (cb) {
+                cb();
+            });
+
             // scroll to our new list start
             if ('scrollBehavior' in document.documentElement.style) {
                 // smooth scrolling for all browsers supporting the scroll behaviour (all except for IE11/Edge rn)
@@ -92,7 +115,9 @@ class XHRPagination implements XhrPagination {
                 cb();
             });
         } else {
-            console.error("couldn't retrieve ajax container from XHR response text");
+            this.failCallbacks.forEach(function (cb) {
+                cb("couldn't retrieve ajax container from XHR response text")
+            });
         }
     }
 
@@ -152,16 +177,15 @@ class XHRPagination implements XhrPagination {
         xhr.onload = () => {
             if (xhr.status === 200) {
                 this.paginate(element, xhr.responseText, true);
+            } else {
+                this.failCallbacks.forEach(function (cb) {
+                    cb(xhr.statusText);
+                })
             }
         };
         xhr.send();
     }
 
-    /**
-     * add the pagination click event listener to all elements of queryable element
-     *
-     * @param element: QuerySelectorElement
-     */
     public addAllPaginationEventListeners(element: QuerySelectorElement) {
         let _this = this;
 
@@ -173,10 +197,6 @@ class XHRPagination implements XhrPagination {
         });
     }
 
-    /**
-     * adds the onpopstate functionality
-     * and replaces the current browser history state for history.back() functionality to main page
-     */
     public prepareBrowserHistoryUpdate() {
         // add the current page to the history for window.back before the first XHR request
         let stateObj = {url: location.href, innerHTML: document.body.innerHTML};
@@ -194,14 +214,6 @@ class XHRPagination implements XhrPagination {
                 }
             }
         };
-    }
-
-    /**
-     * in case your application relies on additional javascript you can register a callback
-     * which registers on every pagination process
-     */
-    public addPaginateCallback(p: () => any): void {
-        this.callbacks.push(p);
     }
 }
 
