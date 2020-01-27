@@ -5,7 +5,7 @@ TYPO3 Extension providing full functionality for AJAX paginations for passed obj
 
 ## Features
 - only the related content element is rendered resulting in no performance problems
-- contrary to its name the extension uses XHRequests and does not require jQuery
+- lightweight, it doesn't require any additional libraries to work
 - option to manipulate the browser history with an additional option
 - if JavaScript is disabled the pagination will still work normally
 
@@ -39,6 +39,28 @@ config {
             }
         }
     }
+}
+```
+
+## Callbacks after a successful pagination
+In case you have to execute JavaScript after a pagination (f.e. for image gallery libraries) you can register a callback using the default exposed xhrPagination object.
+```javascript
+xhrPagination.addPaginateCallback(function () {
+    console.log("successfully paginated woohoo")
+});
+```
+
+The interface for the xhrPagination object which you could also import using the TypeScript modules:
+```typescript
+interface XhrPagination {
+    addPaginateCallback(cb: () => any): void;
+    prepareBrowserHistoryUpdate(): void;
+    addAllPaginationEventListeners(element: QuerySelectorElement): void;
+}
+
+// the element simply requires the querySelectorAll function
+interface QuerySelectorElement {
+    querySelectorAll(selectors: string): any
 }
 ```
 
