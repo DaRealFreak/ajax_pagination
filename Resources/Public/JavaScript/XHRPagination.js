@@ -57,16 +57,17 @@ var XHRPagination = /** @class */ (function () {
                 cb();
             });
             // scroll to our new list start
+            var topOffset = XHRPagination.cumulativeOffset(parentNode.querySelector('div[id="' + replacementNode.id + '"]')).top;
             if ('scrollBehavior' in document.documentElement.style) {
                 // smooth scrolling for all browsers supporting the scroll behaviour (all except for IE11/Edge rn)
                 window.scrollTo({
-                    top: parentNode.querySelector('div[id="' + replacementNode.id + '"]').offsetTop - 150,
+                    top: topOffset - 150,
                     behavior: 'smooth'
                 });
             }
             else {
                 // Internet Explorer 11 and Edge don't support ScrollToOptions yet, hard jump for them
-                window.scrollTo(0, parentNode.querySelector('div[id="' + replacementNode.id + '"]').offsetTop - 150);
+                window.scrollTo(0, topOffset - 150);
             }
             // call each callback after finishing our pagination process
             this.callbacks.forEach(function (cb) {
@@ -78,6 +79,23 @@ var XHRPagination = /** @class */ (function () {
                 cb("couldn't retrieve ajax container from XHR response text");
             });
         }
+    };
+    /**
+     * function to retrieve the cumulative offset of the passed element, code taken from PrototypeJS
+     *
+     * @param el: HTMLElement|null
+     */
+    XHRPagination.cumulativeOffset = function (el) {
+        var top = 0, left = 0;
+        while (el !== null) {
+            top += el.offsetTop || 0;
+            left += el.offsetLeft || 0;
+            el = el.offsetParent;
+        }
+        return {
+            top: top,
+            left: left
+        };
     };
     /**
      * Internet Explorer 11 and Edge compliant alternative to the closest selector

@@ -90,6 +90,7 @@ class XHRPagination implements XhrPagination {
 
             parentNode.removeChild(replacementNode);
             parentNode.appendChild(contentElement);
+
             // refresh our pagination event listener for the newly loaded content elements
             this.addAllPaginationEventListeners(parentNode);
 
@@ -99,15 +100,16 @@ class XHRPagination implements XhrPagination {
             });
 
             // scroll to our new list start
+            let topOffset = XHRPagination.cumulativeOffset(parentNode.querySelector('div[id="' + replacementNode.id + '"]')).top;
             if ('scrollBehavior' in document.documentElement.style) {
                 // smooth scrolling for all browsers supporting the scroll behaviour (all except for IE11/Edge rn)
                 window.scrollTo({
-                    top: (<HTMLInputElement>parentNode.querySelector('div[id="' + replacementNode.id + '"]')).offsetTop - 150,
+                    top: topOffset - 150,
                     behavior: 'smooth',
                 });
             } else {
                 // Internet Explorer 11 and Edge don't support ScrollToOptions yet, hard jump for them
-                window.scrollTo(0, (<HTMLInputElement>parentNode.querySelector('div[id="' + replacementNode.id + '"]')).offsetTop - 150);
+                window.scrollTo(0, topOffset - 150);
             }
 
             // call each callback after finishing our pagination process
@@ -119,6 +121,25 @@ class XHRPagination implements XhrPagination {
                 cb("couldn't retrieve ajax container from XHR response text")
             });
         }
+    }
+
+    /**
+     * function to retrieve the cumulative offset of the passed element, code taken from PrototypeJS
+     *
+     * @param el: HTMLElement|null
+     */
+    private static cumulativeOffset(el: HTMLElement | null): { top: number; left: number } {
+        let top = 0, left = 0;
+        while (el !== null) {
+            top += el.offsetTop || 0;
+            left += el.offsetLeft || 0;
+            el = <HTMLElement>el.offsetParent;
+        }
+
+        return {
+            top: top,
+            left: left
+        };
     }
 
     /**
