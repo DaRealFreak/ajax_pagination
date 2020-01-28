@@ -223,8 +223,8 @@ let xhrPagination = new XHRPagination();
 document.addEventListener("DOMContentLoaded", function () {
     if (document.querySelector('[id^="ajax-container-"][data-update-browser-history="1"]') !== null) {
         xhrPagination.prepareBrowserHistoryUpdate()
+    } else {
+        // add the pagination event listener initially to all found links in the document
+        xhrPagination.addAllPaginationEventListeners(document);
     }
-
-    // add the pagination event listener initially to all found links in the document
-    xhrPagination.addAllPaginationEventListeners(document);
 });
