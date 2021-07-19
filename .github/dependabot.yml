@@ -1,0 +1,13 @@
+version: 2
+updates:
+- package-ecosystem: composer
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: typo3/cms-core
+    versions:
+    - 10.4.12
+    - 10.4.13
+    - 10.4.14
